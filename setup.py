@@ -1,5 +1,7 @@
-#!/usr/bin/python
-
+import argparse
+import os
+import shutil
+import sys
 import subprocess
 
 
@@ -24,8 +26,44 @@ if __name__ == "__main__":
         )
         exit(1)
 
-    # Allow users other than root to use Intel PT
-    with open("/etc/sysctl.conf", 'a') as f:
-        f.write("kernel.perf_event_paranoid=-1\n")
+    parser = argparse.ArgumentParser(description="setup")
+    parser.add_argument(
+        "--clean",
+        help="Force a full installation and rebuild of dependencies and source",
+        action="store_true",
+        default=False,
+    )
+
+    args = parser.parse_args()
+
+    if args.clean:
+        shutil.rmtree("deps")
+        shutil.rmtree("bin")
+
+    custom_env = os.environ.copy()
+    custom_env["PATH"] = os.path.abspath("bin") + os.pathsep + custom_env["PATH"]
+
+    # Install and build Intel x86 Encoder/Decoder (Intel xed)
+    subprocess.run(["mkdir", "-p", "deps"])
+    subprocess.run(["mkdir", "-p", "bin"])
+
+    git_clone = ["git", "clone"]
+
+    if not os.path.exists("bin/xed"):
+        subprocess.run(
+            [*git_clone, "https://github.com/intelxed/xed.git", "deps/xed"],
+            check=True,
+            text=True,
+        )
+        subprocess.run(
+            [*git_clone, "https://github.com/intelxed/mbuild.git", "deps/mbuild"],
+            check=True,
+            text=True,
+        )
+        subprocess.run([sys.executable, "mfile.py", "examples"], cwd="deps/xed")
+
+        shutil.copy2("deps/xed/obj/wkit/bin/xed", "bin/xed")
+
+    subprocess.run(["xed", "-version"], env=custom_env, check=True)
 
     print("Setup complete!")

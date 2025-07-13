@@ -1,6 +1,9 @@
-import subprocess
 import argparse
+import os
+import subprocess
 
+custom_env = os.environ.copy()
+custom_env["PATH"] = os.path.abspath("bin") + os.pathsep + custom_env["PATH"]
 
 def check_intel_pt() -> bool:
     result = subprocess.run(
@@ -11,6 +14,32 @@ def check_intel_pt() -> bool:
             return True
     return False
 
+def perf_record(target: str) -> str:
+    perf = ["perf", "record"]
+    perf_event = ["-e", "intel_pt//u"]
+    perf_output = ["-o", f"{target}.data"]
+    target_program = [target]
+    cmd = [*perf, *perf_event, *perf_output, "--", *target_program]
+
+    stdout = open(f"{target}-output", "w")
+    subprocess.run(
+        cmd,
+        stdout=stdout,
+        check=True
+    )
+    return f"{target}.data"
+
+def perf_script(data_file: str):
+    perf = ["perf", "script"]
+    perf_input = ["-i", data_file]
+    perf_options = ["--insn-trace", "--xed"]
+    cmd = [*perf, *perf_input, *perf_options]
+
+    subprocess.run(
+        cmd,
+        env=custom_env,
+        check=True
+    )
 
 if __name__ == "__main__":
     if not check_intel_pt():
@@ -27,16 +56,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print(f"Profiling: {args.target_program}")
-
-    perf = ["perf", "record"]
-    perf_event = ["-e", "intel_pt//u"]
-    perf_output = ["-o", f"{args.target_program}.data"]
-    target_program = [args.target_program]
-    cmd = [*perf, *perf_event, *perf_output, "--", *target_program]
-
-    stdout = open(f"{args.target_program}-output", "w")
-    subprocess.run(
-        cmd,
-        stdout=stdout,
-        check=True
-    )
+    perf_record_output = perf_record(args.target_program)
+    perf_script(perf_record_output)
