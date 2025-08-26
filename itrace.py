@@ -2,8 +2,14 @@ import argparse
 import os
 import subprocess
 
+from typing import List
+from pathlib import Path
+
 custom_env = os.environ.copy()
 custom_env["PATH"] = os.path.abspath("bin") + os.pathsep + custom_env["PATH"]
+
+PROJECT_ROOT = Path().cwd()
+TRACE_DATA = PROJECT_ROOT / "trace"
 
 def check_intel_pt() -> bool:
     result = subprocess.run(
@@ -14,34 +20,41 @@ def check_intel_pt() -> bool:
             return True
     return False
 
-def perf_record(target: str) -> str:
+def perf_record(target: str, target_args: List[str]) -> Path:
+    trace_output = TRACE_DATA / f"{target}.data"
+
     perf = ["perf", "record"]
     perf_event = ["-e", "intel_pt//u"]
-    perf_output = ["-o", f"{target}.data"]
-    target_program = [target]
+    perf_output = ["-o", trace_output.as_posix()]
+    target_program = [target] + target_args
     cmd = [*perf, *perf_event, *perf_output, "--", *target_program]
 
-    stdout = open(f"{target}-output", "w")
     subprocess.run(
         cmd,
-        stdout=stdout,
         check=True
     )
-    return f"{target}.data"
+    return trace_output
 
-def perf_script(data_file: str):
+def perf_script(trace_output: Path):
     perf = ["perf", "script"]
-    perf_input = ["-i", data_file]
+    perf_input = ["-i", trace_output.as_posix()]
     perf_options = ["--insn-trace", "--xed"]
     cmd = [*perf, *perf_input, *perf_options]
 
     subprocess.run(
         cmd,
         env=custom_env,
-        check=True
     )
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="itrace")
+    parser.add_argument("target_program", help="Program to trace")
+    parser.add_argument("target_args", nargs=argparse.REMAINDER, help="Arguments for the target program")
+
+    args = parser.parse_args()
+
+    print(args.target_args)
+
     if not check_intel_pt():
         print("Intel PT unavailable")
         print(
@@ -49,12 +62,9 @@ if __name__ == "__main__":
             "https://www.intel.com/content/www/us/en/support/articles/000056730/processors.html"
         )
         exit(1)
+    
+    os.makedirs(TRACE_DATA, exist_ok=True)
 
-    parser = argparse.ArgumentParser(description="itrace")
-    parser.add_argument("target_program", help="Program to trace")
-
-    args = parser.parse_args()
-
-    print(f"Profiling: {args.target_program}")
-    perf_record_output = perf_record(args.target_program)
+    print(f"Profiling: {args.target_program} {' '.join(args.target_args)}")
+    perf_record_output = perf_record(args.target_program, args.target_args)
     perf_script(perf_record_output)

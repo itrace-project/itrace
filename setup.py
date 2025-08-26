@@ -4,6 +4,30 @@ import shutil
 import sys
 import subprocess
 
+def build_itrace():
+    subprocess.run(["cmake", ".."], cwd="build", check=True)
+    subprocess.run(["make"], cwd="build", check=True)
+    subprocess.run([sys.executable, "itrace"], cwd="build", check=True)
+
+def install_xed(custom_env):
+    git_clone = ["git", "clone"]
+
+    if not os.path.exists("bin/xed"):
+        subprocess.run(
+            [*git_clone, "https://github.com/intelxed/xed.git", "deps/xed"],
+            check=True,
+            text=True,
+        )
+        subprocess.run(
+            [*git_clone, "https://github.com/intelxed/mbuild.git", "deps/mbuild"],
+            check=True,
+            text=True,
+        )
+        subprocess.run([sys.executable, "mfile.py", "examples"], cwd="deps/xed")
+
+        shutil.copy2("deps/xed/obj/wkit/bin/xed", "bin/xed")
+
+    subprocess.run(["xed", "-version"], env=custom_env, check=True)
 
 def check_intel_pt() -> bool:
     result = subprocess.run(
@@ -39,31 +63,18 @@ if __name__ == "__main__":
     if args.clean:
         shutil.rmtree("deps")
         shutil.rmtree("bin")
+        shutil.rmtree("build")
 
     custom_env = os.environ.copy()
     custom_env["PATH"] = os.path.abspath("bin") + os.pathsep + custom_env["PATH"]
 
-    # Install and build Intel x86 Encoder/Decoder (Intel xed)
     subprocess.run(["mkdir", "-p", "deps"])
     subprocess.run(["mkdir", "-p", "bin"])
+    subprocess.run(["mkdir", "-p", "build"])
 
-    git_clone = ["git", "clone"]
+    # Install and build Intel x86 Encoder/Decoder (Intel xed)
+    install_xed(custom_env)
 
-    if not os.path.exists("bin/xed"):
-        subprocess.run(
-            [*git_clone, "https://github.com/intelxed/xed.git", "deps/xed"],
-            check=True,
-            text=True,
-        )
-        subprocess.run(
-            [*git_clone, "https://github.com/intelxed/mbuild.git", "deps/mbuild"],
-            check=True,
-            text=True,
-        )
-        subprocess.run([sys.executable, "mfile.py", "examples"], cwd="deps/xed")
-
-        shutil.copy2("deps/xed/obj/wkit/bin/xed", "bin/xed")
-
-    subprocess.run(["xed", "-version"], env=custom_env, check=True)
+    build_itrace()
 
     print("Setup complete!")
