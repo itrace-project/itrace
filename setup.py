@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import argparse
 import os
 import shutil
@@ -7,7 +9,7 @@ import subprocess
 def build_itrace():
     subprocess.run(["cmake", ".."], cwd="build", check=True)
     subprocess.run(["make"], cwd="build", check=True)
-    subprocess.run([sys.executable, "itrace"], cwd="build", check=True)
+    subprocess.run(["./itrace"], cwd="build")
 
 def install_xed(custom_env):
     git_clone = ["git", "clone"]
@@ -40,7 +42,7 @@ def check_intel_pt() -> bool:
 
 
 if __name__ == "__main__":
-    print("Setting up itace...")
+    print("Setting up itrace...")
 
     if not check_intel_pt():
         print("Intel PT unavailable")
