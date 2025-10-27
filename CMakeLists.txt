@@ -16,8 +16,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(argparse)
 
 file(GLOB LIB_SOURCES src/libitrace/*.cpp)
-
-message(STATUS "Sources: ${LIB_SOURCES}")
+message(STATUS "libitrace sources: ${LIB_SOURCES}")
 
 add_library(libitrace
     ${LIB_SOURCES}
@@ -26,9 +25,13 @@ target_include_directories(libitrace
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+target_link_libraries(libitrace PUBLIC argparse::argparse)
 
-add_executable(itrace itrace/itrace.cpp)
-target_link_libraries(itrace PUBLIC libitrace argparse)
+file(GLOB ITRACE_SOURCES itrace/*.cpp)
+message(STATUS "itrace sources: ${ITRACE_SOURCES}")
+
+add_executable(itrace ${ITRACE_SOURCES})
+target_link_libraries(itrace PUBLIC libitrace)
 
 # Optional: Add tests
 # enable_testing()

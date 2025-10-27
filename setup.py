@@ -9,7 +9,7 @@ import subprocess
 def build_itrace():
     subprocess.run(["cmake", ".."], cwd="build", check=True)
     subprocess.run(["make"], cwd="build", check=True)
-    subprocess.run(["./itrace"], cwd="build")
+    subprocess.run(["./itrace", "--help"], cwd="build")
 
 def install_xed(custom_env):
     git_clone = ["git", "clone"]

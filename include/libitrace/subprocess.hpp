@@ -19,6 +19,19 @@ using cmd     = std::string;
 using arglist = std::vector<std::string>;
 
 /*
+ * @struct RunningProcess
+ * @brief a struct that contains the metadata of a running process such as pid,
+ * stdout pipe, and stderr pipe
+ * */
+struct RunningProcess {
+	cmd Cmd {};
+	arglist Arglist {};
+    pid_t Pid;
+    int Stdout_pipe {};
+    int Stderr_pipe {};
+};
+
+/*
  * @struct CompletedProcess
  * @brief a struct that contains the outputs of a subprocess such as the stdout,
  * stderr, and exit codes
@@ -46,15 +59,22 @@ public:
 	 * @param arglist arguments to the program as a vector of strings
 	 * */
 	Subprocess(cmd cmd, arglist args = arglist {})
-	    : _cmd {cmd},
-	      _args {args},
+	    : cmd_ {cmd},
+	      args_ {args},
 	      stdoutfd_ {-1} {}
 
 	/*
-	 * @brief run the specified program with the specified argument list
+	 * @brief Run the specified program with the specified argument list and
+	 * block until it terminates
 	 * @return An optional CompletedProcess object
 	 * */
 	std::optional<CompletedProcess> Run();
+
+	/*
+	 * @brief run the specified program with the specified argument list asynchronously
+	 * @return An optional RunningProcess object
+	 * */
+    std::optional<RunningProcess> Popen();
 
 	/*
 	 * @brief set the stdout to a different file descriptor
@@ -64,8 +84,8 @@ public:
 	int SetStdout(int fd);
 
 private:
-	cmd _cmd {};
-	arglist _args {};
+	cmd cmd_ {};
+	arglist args_ {};
 	int stdoutfd_ {};
 };
 
