@@ -1,5 +1,6 @@
 #include "libitrace/record.hpp"
 
+#include <sstream>
 #include <sys/wait.h>
 
 #include "libitrace/subprocess.hpp"
@@ -12,6 +13,9 @@ void libitrace::Record::Run() {
 	}
 
 	auto args = build_arglist_();
+    for (auto arg : args)
+        std::cout << arg << " ";
+    std::cout << std::endl;
 	libitrace::Subprocess perfrecord {"perf", args};
 
 	auto res {perfrecord.Run()};
@@ -24,9 +28,6 @@ pid_t libitrace::Record::Attach(pid_t pid) {
     perfargs_.pid = pid;
 
 	auto args = build_arglist_();
-    for (auto arg : args)
-        std::cout << arg << " ";
-    std::cout << std::endl;
 	libitrace::Subprocess perfrecord {"perf", args};
 
 	auto res {perfrecord.Popen()};
@@ -40,8 +41,14 @@ libitrace::arglist libitrace::Record::build_arglist_() {
 	args.insert(args.end(), {"-e", perfargs_.ptargs});
 	args.insert(args.end(), {"-o", perfargs_.outfile});
 
-    if (perfargs_.symbol) {
-        std::string filter = "filter " + *perfargs_.symbol + " @ " + perfargs_.program;
+    if (perfargs_.filter) {
+        std::string filter {};
+        if (perfargs_.symbol)
+            filter += "filter " + *perfargs_.symbol + " @ " + perfargs_.program + " ";
+
+        if (perfargs_.instrptr_range)
+            filter += "filter " + *perfargs_.instrptr_range + " @ " + perfargs_.program + " ";
+
         args.insert(args.end(), {"--filter", filter});
     }
 
@@ -60,4 +67,18 @@ libitrace::arglist libitrace::Record::build_arglist_() {
 
 void libitrace::Record::AddSymbolFilter(std::string symbol) {
     perfargs_.symbol = symbol;
+    perfargs_.filter = true;
+}
+
+void libitrace::Record::AddInstrPtrFilter(long start, long end) {
+	if (end <= start)
+		throw std::runtime_error(
+		    "Please specify a valid instruction pointer range in hex"
+		);
+
+	long size = end - start;
+    std::stringstream ss {};
+    ss << "0x" << std::hex << start << "/0x" << size;
+    perfargs_.instrptr_range = ss.str();
+    perfargs_.filter = true;
 }

@@ -6,12 +6,35 @@
 #include <unistd.h>
 
 #include <argparse/argparse.hpp>
+#include <sstream>
 #include <vector>
 
 #include "libitrace/utils.hpp"
 #include "record.hpp"
 
 using std::cout, std::cerr, std::endl;
+
+std::pair<long, long> parse_ipfilter(std::string ipfilter) {
+    std::stringstream ss(ipfilter);
+    char delimiter = ',';
+    std::vector<std::string> tokens {};
+    std::string token {};
+    while (std::getline(ss, token, delimiter)) {
+        tokens.push_back(token);
+    }
+
+    long start, end;
+    try {
+        start = std::stol(tokens[0], nullptr, 16);
+        end = std::stol(tokens[1], nullptr, 16);
+        if (start >= end) throw std::invalid_argument("start cannot be greater or equal to end");
+    } catch (std::invalid_argument& e) {
+        cerr << "Please use valid hex addresses" << endl;
+        throw e;
+    }
+
+    return {start, end};
+}
 
 void record(const argparse::ArgumentParser& args) {
 	std::vector<std::string> target {};
@@ -38,6 +61,12 @@ void record(const argparse::ArgumentParser& args) {
     if (args.is_used("filter-symbol")) {
         std::string symbol = args.get<std::string>("filter-symbol");
         instance.AddSymbolFilter(symbol);
+    }
+
+    if (args.is_used("filter-instr-ptr")) {
+        std::string ipfilter = args.get<std::string>("filter-instr-ptr");
+        auto [start, end] = parse_ipfilter(ipfilter);
+        instance.AddInstrPtrFilter(start, end);
     }
 
 	if (args.is_used("pid")) {

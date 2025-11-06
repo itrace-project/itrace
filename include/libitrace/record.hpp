@@ -19,6 +19,8 @@ struct RecordArgs {
 	arglist programargs {};
 	std::optional<pid_t> pid {std::nullopt};
     std::optional<std::string> symbol;
+    std::optional<std::string> instrptr_range {};
+    bool filter {false};
 };
 
 /*
@@ -63,6 +65,14 @@ public:
 	 * @param string
 	 * */
 	void AddSymbolFilter(std::string symbol);
+
+	/*
+	 * @brief Add an instruction pointer range from the program binary to track.
+	 * Perf will trace only within the range
+	 * @param start address
+	 * @param end address
+	 * */
+	void AddInstrPtrFilter(long start, long end);
 
 private:
 	RecordArgs perfargs_ {};

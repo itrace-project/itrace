@@ -35,6 +35,11 @@ void parseargs(
 	    .scan<'i', int>();
 	recordargs.add_argument("-s", "--filter-symbol")
 	    .help("Symbol to filter trace data on");
+	recordargs.add_argument("-a", "--filter-instr-ptr")
+	    .help(
+	        "Instruction pointer addresses to filter trace data on. Formatted "
+	        "as <start>,<end> where addresses are in hex"
+	    );
 
 	decodeargs.add_description("Decode a trace into human readable form");
 	decodeargs.add_argument("-i", "--input")
