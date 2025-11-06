@@ -26,9 +26,9 @@ using arglist = std::vector<std::string>;
 struct RunningProcess {
 	cmd Cmd {};
 	arglist Arglist {};
-    pid_t Pid;
-    int Stdout_pipe {};
-    int Stderr_pipe {};
+	pid_t Pid;
+	int Stdout_pipe {};
+	int Stderr_pipe {};
 };
 
 /*
@@ -61,7 +61,8 @@ public:
 	Subprocess(cmd cmd, arglist args = arglist {})
 	    : cmd_ {cmd},
 	      args_ {args},
-	      stdoutfd_ {-1} {}
+	      stdoutfd_ {-1},
+	      capturestdout_ {true} {}
 
 	/*
 	 * @brief Run the specified program with the specified argument list and
@@ -71,10 +72,11 @@ public:
 	std::optional<CompletedProcess> Run();
 
 	/*
-	 * @brief run the specified program with the specified argument list asynchronously
+	 * @brief run the specified program with the specified argument list
+	 * asynchronously
 	 * @return An optional RunningProcess object
 	 * */
-    std::optional<RunningProcess> Popen();
+	std::optional<RunningProcess> Popen();
 
 	/*
 	 * @brief set the stdout to a different file descriptor
@@ -87,6 +89,7 @@ private:
 	cmd cmd_ {};
 	arglist args_ {};
 	int stdoutfd_ {};
+	bool capturestdout_ {};
 };
 
 }  // namespace libitrace

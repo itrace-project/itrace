@@ -11,8 +11,9 @@ namespace libitrace {
 
 /*
  * @class Decode
- * @brief A class that abstracts the decoding of a trace into human readable
- * output. Uses subprocesses to spawn perf script instances
+ * @brief A class that abstracts the decoding of a trace into human readable.
+ * The perf command used to run this is `perf script --insn-trace --xed -i
+ * <input_file>` output. Uses subprocesses to spawn perf script instance.
  * */
 class Decode {
 public:
@@ -21,7 +22,7 @@ public:
 	/*
 	 * @brief Initialite a Decode instance
 	 * @param path to trace binary file
-     * @param path to trace output file
+	 * @param path to trace output file
 	 * */
 	Decode(const std::string& infile, const std::string& outfile)
 	    : infile_ {infile},
@@ -30,8 +31,8 @@ public:
 	void Run();
 
 private:
-    std::string infile_ {};
-    std::string outfile_ {};
+	std::string infile_ {};
+	std::string outfile_ {};
 };
 
 }  // namespace libitrace

@@ -1,11 +1,12 @@
 #include <unistd.h>
+
 #include <argparse/argparse.hpp>
 #include <iostream>
 #include <string>
 
-#include "record.hpp"
 #include "decode.hpp"
 #include "libitrace/subprocess.hpp"
+#include "record.hpp"
 
 using std::cerr;
 
@@ -29,7 +30,11 @@ void parseargs(
 	recordargs.add_argument("-o", "--output")
 	    .help("Output file of trace")
 	    .default_value(std::string("itrace.data"));
-	recordargs.add_argument("-p", "--pid").help("Process id to attach to").scan<'i', int>();
+	recordargs.add_argument("-p", "--pid")
+	    .help("Process id to attach to")
+	    .scan<'i', int>();
+	recordargs.add_argument("-s", "--filter-symbol")
+	    .help("Symbol to filter trace data on");
 
 	decodeargs.add_description("Decode a trace into human readable form");
 	decodeargs.add_argument("-i", "--input")

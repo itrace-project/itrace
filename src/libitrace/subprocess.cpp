@@ -1,12 +1,17 @@
 #include "libitrace/subprocess.hpp"
 
+#include <fcntl.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
+#include <optional>
+
+#include "libitrace/utils.hpp"
 
 // Helper functions
 std::string read_pipe(int fd) {
 	std::string out {};
-	char buf[4096] {};
+	char buf[1048576] {};
 	ssize_t bytes {};
 	while ((bytes = read(fd, buf, sizeof(buf)))) {
 		if (bytes == 0 || bytes == -1) break;
@@ -18,17 +23,24 @@ std::string read_pipe(int fd) {
 namespace libitrace {
 
 std::optional<RunningProcess> Subprocess::Popen() {
+	// [0] is read end, [1] is write end
 	int stdout_pipe[2] {};
 	int stderr_pipe[2] {};
 	if (pipe(stdout_pipe) == -1 || pipe(stderr_pipe) == -1) {
 		perror("pipe creation failed");
-        return std::nullopt;
+		return std::nullopt;
+	}
+
+	if (fcntl(stdout_pipe[0], F_SETPIPE_SZ, 1048576) == -1 ||
+	    fcntl(stdout_pipe[0], F_SETPIPE_SZ, 1048576) == -1) {
+		perror("fcntl F_SETPIPE_SZ");
+		return std::nullopt;
 	}
 
 	pid_t child_pid = fork();
 	if (child_pid == -1) {
 		perror("error creating child process");
-        return std::nullopt;
+		return std::nullopt;
 	}
 
 	if (child_pid == 0) {
@@ -38,13 +50,17 @@ std::optional<RunningProcess> Subprocess::Popen() {
 		for (size_t i {0}; i < args_.size(); ++i) argv[i + 1] = args_[i].data();
 		argv[args_.size() + 1] = nullptr;
 
-		if (stdoutfd_ == -1)
+		if (capturestdout_) {
 			dup2(stdout_pipe[1], STDOUT_FILENO);
-		else
+			close(stdout_pipe[0]);
+			close(stdout_pipe[1]);
+
+			dup2(stderr_pipe[1], STDERR_FILENO);
+			close(stderr_pipe[0]);
+			close(stderr_pipe[1]);
+		} else {
 			dup2(stdoutfd_, STDOUT_FILENO);
-		close(stdout_pipe[0]);
-		dup2(stderr_pipe[1], STDERR_FILENO);
-		close(stderr_pipe[0]);
+		}
 
 		execvp(argv[0], argv);
 		// argv not memory leak because execvp suceeding will mean all memory is
@@ -59,16 +75,20 @@ std::optional<RunningProcess> Subprocess::Popen() {
 	close(stderr_pipe[1]);
 	return RunningProcess {
 	    cmd_, args_, child_pid, stdout_pipe[0], stderr_pipe[0]
-    };
+	};
 }
 
 std::optional<CompletedProcess> Subprocess::Run() {
-    auto metadata = Popen();
+	auto metadata = Popen();
 
 	// Close the write ends of the open fds to the pipes to send eof
 	// pipe read before wait because if pipe becomes full causes deadlock
-	std::string stdout {read_pipe(metadata->Stdout_pipe)};
-	std::string stderr {read_pipe(metadata->Stderr_pipe)};
+	std::string stdout {};
+	std::string stderr {};
+	if (capturestdout_) {
+		stdout = read_pipe(metadata->Stdout_pipe);
+		stderr = read_pipe(metadata->Stderr_pipe);
+	}
 	close(metadata->Stdout_pipe);
 	close(metadata->Stderr_pipe);
 
@@ -85,7 +105,8 @@ std::optional<CompletedProcess> Subprocess::Run() {
 }
 
 int Subprocess::SetStdout(int fd) {
-	stdoutfd_ = fd;
+	stdoutfd_      = fd;
+	capturestdout_ = false;
 	return 0;
 }
 

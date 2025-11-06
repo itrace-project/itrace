@@ -1,11 +1,12 @@
 #include "libitrace/decode.hpp"
+
 #include "decode.hpp"
 
 using std::cerr;
 
 void decode(const argparse::ArgumentParser& args) {
-    std::string infile {};
-    std::string outfile {};
+	std::string infile {};
+	std::string outfile {};
 
 	try {
 		infile  = args.get<std::string>("input");
@@ -16,7 +17,6 @@ void decode(const argparse::ArgumentParser& args) {
 		exit(1);
 	}
 
-    libitrace::Decode instance(infile, outfile);
-    instance.Run();
+	libitrace::Decode instance(infile, outfile);
+	instance.Run();
 }
-

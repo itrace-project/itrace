@@ -1,11 +1,14 @@
+#include "libitrace/decode.hpp"
+
 #include <fcntl.h>
 
-#include "libitrace/decode.hpp"
 #include "libitrace/subprocess.hpp"
 #include "libitrace/utils.hpp"
 
 void libitrace::Decode::Run() {
-    libitrace::arglist perfargs = {"script", "-i", infile_, "--insn-trace", "--xed"};
+	libitrace::arglist perfargs = {
+	    "script", "-i", infile_, "--insn-trace", "--xed"
+	};
 	libitrace::Subprocess perfscript {"perf", perfargs};
 
 	// set to everyone rw but umask will mask it to something different

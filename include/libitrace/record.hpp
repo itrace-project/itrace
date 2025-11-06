@@ -7,7 +7,19 @@
 
 #include <argparse/argparse.hpp>
 
+#include "libitrace/subprocess.hpp"
+
 namespace libitrace {
+
+struct RecordArgs {
+	std::string prefix {"record"};
+	std::string ptargs {"intel_pt//u"};
+	std::string outfile {};
+	std::string program {};
+	arglist programargs {};
+	std::optional<pid_t> pid {std::nullopt};
+    std::optional<std::string> symbol;
+};
 
 /*
  * @class Record
@@ -19,25 +31,19 @@ public:
 	Record() = delete;
 
 	/*
-	 * @brief Initialite a Record instance for attaching to a tracee
-     * @arapm path of the output file
-	 * */
-	Record(const std::string& outfile)
-	      : outfile_ {outfile} {}
-
-	/*
 	 * @brief Initialite a Record instance for running a tracee
 	 * @param target program to trace
-     * @param arguments to pass into target program
-     * @arapm path of the output file
+	 * @param arguments to pass into target program
+	 * @param path of the output file
 	 * */
 	Record(
 	    const std::string& targetprogram,
 	    const std::vector<std::string>& targetargs, const std::string& outfile
-	)
-	    : targetprogram_ {targetprogram},
-	      targetargs_ {targetargs},
-	      outfile_ {outfile} {}
+	) {
+		perfargs_.outfile     = outfile;
+		perfargs_.program     = targetprogram;
+		perfargs_.programargs = targetargs;
+	}
 
 	/*
 	 * @brief Run the traget program under a perf record.
@@ -46,15 +52,22 @@ public:
 
 	/*
 	 * @brief Attach the tracer to the target pid
-     * @param Target pid
-     * @return Pid of tracer process
+	 * @param Target pid
+	 * @return Pid of tracer process
 	 * */
-    pid_t Attach(pid_t pid);
+	pid_t Attach(pid_t pid);
+
+	/*
+	 * @brief Add a symbol from the program binary to track. Perf will trace
+	 * only that symbol
+	 * @param string
+	 * */
+	void AddSymbolFilter(std::string symbol);
 
 private:
-	std::string targetprogram_ {};
-	std::vector<std::string> targetargs_ {};
-	std::string outfile_ {};
+	RecordArgs perfargs_ {};
+
+	libitrace::arglist build_arglist_();
 };
 
 }  // namespace libitrace
