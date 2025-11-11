@@ -18,9 +18,10 @@ struct RecordArgs {
 	std::string program {};
 	arglist programargs {};
 	std::optional<pid_t> pid {std::nullopt};
-    std::optional<std::string> symbol;
-    std::optional<std::string> instrptr_range {};
-    bool filter {false};
+	std::optional<std::string> symbol;
+	std::optional<std::string> instrptr_range {};
+    bool snapshot {false};
+	bool filter {false};
 };
 
 /*
@@ -57,7 +58,7 @@ public:
 	 * @param Target pid
 	 * @return Pid of tracer process
 	 * */
-	pid_t Attach(pid_t pid);
+	RunningProcess Attach(pid_t pid);
 
 	/*
 	 * @brief Add a symbol from the program binary to track. Perf will trace
@@ -73,6 +74,11 @@ public:
 	 * @param end address
 	 * */
 	void AddInstrPtrFilter(long start, long end);
+
+	/*
+	 * @brief Record a trace using snapshotting instead of an exhaustive trace
+	 * */
+	void SetSnapshotMode();
 
 private:
 	RecordArgs perfargs_ {};

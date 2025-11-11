@@ -67,7 +67,8 @@ public:
 	/*
 	 * @brief Run the specified program with the specified argument list and
 	 * block until it terminates
-	 * @return An optional CompletedProcess object
+	 * @return An optional CompletedProcess object with stdout, stderr, and exit
+	 * status
 	 * */
 	std::optional<CompletedProcess> Run();
 
@@ -77,6 +78,15 @@ public:
 	 * @return An optional RunningProcess object
 	 * */
 	std::optional<RunningProcess> Popen();
+
+	/*
+	 * @brief Block until a process spawned by Popen terminates
+     * @param RunningProcess context returned by Popen
+     * @param Whether or not to capture stdout and stderr in CompletedProcess object
+	 * @return An optional CompletedProcess object with stdout, stderr, and exit
+	 * status
+	 * */
+	static std::optional<CompletedProcess> Wait(const RunningProcess& context, bool capturestdout=false);
 
 	/*
 	 * @brief set the stdout to a different file descriptor

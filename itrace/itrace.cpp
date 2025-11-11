@@ -40,6 +40,9 @@ void parseargs(
 	        "Instruction pointer addresses to filter trace data on. Formatted "
 	        "as <start>,<end> where addresses are in hex"
 	    );
+	recordargs.add_argument("-S", "--snapshot")
+	    .help("Record the trace in snapshot mode")
+	    .default_value(false);
 
 	decodeargs.add_description("Decode a trace into human readable form");
 	decodeargs.add_argument("-i", "--input")

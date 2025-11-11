@@ -1,5 +1,5 @@
 #ifndef _GNU_SOURCE
-#define _GNU_SOURCE
+	#define _GNU_SOURCE
 #endif
 
 #include "libitrace/subprocess.hpp"
@@ -36,7 +36,7 @@ std::optional<RunningProcess> Subprocess::Popen() {
 	}
 
 	if (fcntl(stdout_pipe[0], F_SETPIPE_SZ, 1048576) == -1 ||
-	    fcntl(stdout_pipe[0], F_SETPIPE_SZ, 1048576) == -1) {
+	    fcntl(stderr_pipe[0], F_SETPIPE_SZ, 1048576) == -1) {
 		perror("fcntl F_SETPIPE_SZ");
 		return std::nullopt;
 	}
@@ -75,6 +75,8 @@ std::optional<RunningProcess> Subprocess::Popen() {
 		exit(1);
 	}
 
+	// Close the write ends of the open fds to the pipes to send eof
+	// pipe read before wait because if pipe becomes full causes deadlock
 	close(stdout_pipe[1]);
 	close(stderr_pipe[1]);
 	return RunningProcess {
@@ -84,27 +86,31 @@ std::optional<RunningProcess> Subprocess::Popen() {
 
 std::optional<CompletedProcess> Subprocess::Run() {
 	auto metadata = Popen();
+	if (!metadata) return std::nullopt;
+	return Wait(*metadata, capturestdout_);
+}
 
-	// Close the write ends of the open fds to the pipes to send eof
-	// pipe read before wait because if pipe becomes full causes deadlock
+std::optional<CompletedProcess> Subprocess::Wait(
+    const RunningProcess& context, bool capturestdout
+) {
 	std::string stdout {};
 	std::string stderr {};
-	if (capturestdout_) {
-		stdout = read_pipe(metadata->Stdout_pipe);
-		stderr = read_pipe(metadata->Stderr_pipe);
+	if (capturestdout) {
+		stdout = read_pipe(context.Stdout_pipe);
+		stderr = read_pipe(context.Stderr_pipe);
 	}
-	close(metadata->Stdout_pipe);
-	close(metadata->Stderr_pipe);
+	close(context.Stdout_pipe);
+	close(context.Stderr_pipe);
 
 	int stat_loc {};
-	if (waitpid(metadata->Pid, &stat_loc, 0) != metadata->Pid) {
+	if (waitpid(context.Pid, &stat_loc, 0) != context.Pid) {
 		perror("unexpected pid from wait returned");
 		return std::nullopt;
 	}
 
 	// TODO: Per wait man page, differentiate different exit conditions
 	return CompletedProcess {
-	    cmd_, args_, stdout, stderr, WEXITSTATUS(stat_loc)
+	    context.Cmd, context.Arglist, stdout, stderr, WEXITSTATUS(stat_loc)
 	};
 }
 
