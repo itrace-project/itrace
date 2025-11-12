@@ -5,6 +5,7 @@
 #include <string>
 
 #include "decode.hpp"
+#include "export.hpp"
 #include "libitrace/subprocess.hpp"
 #include "record.hpp"
 
@@ -20,8 +21,9 @@ bool intelpt_available() {
 }
 
 void parseargs(
-    int argc, char** argv, argparse::ArgumentParser& recordargs,
-    argparse::ArgumentParser& decodeargs, argparse::ArgumentParser& program
+    int argc, char** argv, argparse::ArgumentParser& program,
+    argparse::ArgumentParser& recordargs, argparse::ArgumentParser& decodeargs,
+    argparse::ArgumentParser& exportargs
 ) {
 	recordargs.add_description("Record the trace of a program");
 	recordargs.add_argument("target")
@@ -42,7 +44,7 @@ void parseargs(
 	    );
 	recordargs.add_argument("-S", "--snapshot")
 	    .help("Record the trace in snapshot mode")
-	    .default_value(false);
+	    .implicit_value(true);
 
 	decodeargs.add_description("Decode a trace into human readable form");
 	decodeargs.add_argument("-i", "--input")
@@ -52,8 +54,20 @@ void parseargs(
 	    .help("Output file of trace")
 	    .default_value(std::string("itrace.trace"));
 
+	exportargs.add_description(
+	    "Export a trace into .fzf (Fuchsia trace format) for viewing with "
+	    "Perfetto"
+	);
+	exportargs.add_argument("-i", "--input")
+	    .help("Path to .data trace file")
+	    .default_value(std::string("itrace.data"));
+	exportargs.add_argument("-o", "--output")
+	    .help("Output file of trace")
+	    .default_value(std::string("itrace.ftf"));
+
 	program.add_subparser(recordargs);
 	program.add_subparser(decodeargs);
+	program.add_subparser(exportargs);
 
 	try {
 		program.parse_args(argc, argv);
@@ -76,12 +90,15 @@ int main(int argc, char** argv) {
 	argparse::ArgumentParser program("itrace", "0.0.1");
 	argparse::ArgumentParser recordargs("record");
 	argparse::ArgumentParser decodeargs("decode");
-	parseargs(argc, argv, recordargs, decodeargs, program);
+	argparse::ArgumentParser exportargs("export");
+	parseargs(argc, argv, program, recordargs, decodeargs, exportargs);
 
 	if (program.is_subcommand_used("record")) {
 		record(recordargs);
 	} else if (program.is_subcommand_used("decode")) {
 		decode(decodeargs);
+	} else if (program.is_subcommand_used("export")) {
+		exporter(exportargs);
 	} else {
 		cerr << "Unknown subcommand\n";
 		cerr << program.help().str();

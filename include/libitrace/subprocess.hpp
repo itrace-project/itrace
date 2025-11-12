@@ -81,12 +81,15 @@ public:
 
 	/*
 	 * @brief Block until a process spawned by Popen terminates
-     * @param RunningProcess context returned by Popen
-     * @param Whether or not to capture stdout and stderr in CompletedProcess object
+	 * @param RunningProcess context returned by Popen
+	 * @param Whether or not to capture stdout and stderr in CompletedProcess
+	 * object
 	 * @return An optional CompletedProcess object with stdout, stderr, and exit
 	 * status
 	 * */
-	static std::optional<CompletedProcess> Wait(const RunningProcess& context, bool capturestdout=false);
+	static std::optional<CompletedProcess> Wait(
+	    const RunningProcess& context, bool capturestdout = false
+	);
 
 	/*
 	 * @brief set the stdout to a different file descriptor

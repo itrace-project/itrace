@@ -5,11 +5,14 @@
 #include "libitrace/subprocess.hpp"
 #include "libitrace/utils.hpp"
 
-void libitrace::Decode::Run() {
-	libitrace::arglist perfargs = {
+namespace libitrace {
+
+void Decode::Run() {
+	arglist perfargs = {
 	    "script", "-i", infile_, "--insn-trace", "--xed"
 	};
-	libitrace::Subprocess perfscript {"perf", perfargs};
+	print_perf_args(perfargs);
+	Subprocess perfscript {"perf", perfargs};
 
 	// set to everyone rw but umask will mask it to something different
 	int fd = open(outfile_.c_str(), O_RDWR | O_CREAT, 0660);
@@ -17,5 +20,8 @@ void libitrace::Decode::Run() {
 	perfscript.SetStdout(fd);
 
 	auto res = perfscript.Run();
-	if (!res || res->Exit != 0) die2(res->Stderr.c_str());
+	if (!res) throw std::runtime_error("Error decoding trace data");
+	if (res->Exit != 0) throw std::runtime_error(res->Stderr);
 }
+
+}  // namespace libitrace

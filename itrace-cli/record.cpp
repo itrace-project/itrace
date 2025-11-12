@@ -54,7 +54,7 @@ void record(const argparse::ArgumentParser& args) {
 	std::vector<std::string> programargs(target.begin() + 1, target.end());
 	libitrace::Record instance(program, programargs, outfile);
 
-    if (args.is_used("snapshot")) instance.SetSnapshotMode();
+	if (args.is_used("snapshot")) instance.SetSnapshotMode();
 
 	if (args.is_used("filter-symbol")) {
 		std::string symbol = args.get<std::string>("filter-symbol");
@@ -75,35 +75,35 @@ void record(const argparse::ArgumentParser& args) {
 	}
 
 	if (args.is_used("pid") && args.is_used("snapshot")) {
-        // attach with snapshotting
-		pid_t pid     = args.get<int>("pid");
-        libitrace::RunningProcess context = instance.Attach(pid);
+		// attach with snapshotting
+		pid_t pid                         = args.get<int>("pid");
+		libitrace::RunningProcess context = instance.Attach(pid);
 
-        char c {};
-        cout << "Enter [s] to take a snapshot, [q] to quit" << endl;
-        while (std::cin.get(c)) {
-            if (c == 's') {
-                kill(context.Pid, SIGUSR2);
-                sleep(1);
-            } else if (c == 'q') {
-                break;
-            } else {
-                cout << "Enter [s] to take a snapshot, [q] to quit" << endl;
-            }
-        }
+		char c {};
+		cout << "Enter [s] to take a snapshot, [q] to quit" << endl;
+		while (std::cin.get(c)) {
+			if (c == 's') {
+				instance.TakeSnapshot(context);
+				sleep(1);
+			} else if (c == 'q') {
+				break;
+			} else {
+				cout << "Enter [s] to take a snapshot, [q] to quit" << endl;
+			}
+		}
 
-        kill(context.Pid, SIGINT);
-        auto res = libitrace::Subprocess::Wait(context, true);
-        if (!res || res->Exit != 0) {
-            cerr << "Error waiting for attached process" << endl;
-            if (res) cerr << res->Stderr << endl;
-            exit(1);
-        }
+		kill(context.Pid, SIGINT);
+		auto res = libitrace::Subprocess::Wait(context, true);
+		if (!res || res->Exit != 0) {
+			cerr << "Error waiting for attached process" << endl;
+			if (res) cerr << res->Stderr << endl;
+			exit(1);
+		}
 
-	}  else if (args.is_used("pid")) {
-        // attach without snapshotting
-		pid_t pid     = args.get<int>("pid");
-        libitrace::RunningProcess context = instance.Attach(pid);
+	} else if (args.is_used("pid")) {
+		// attach without snapshotting
+		pid_t pid                         = args.get<int>("pid");
+		libitrace::RunningProcess context = instance.Attach(pid);
 
 		cout << "Press any key to stop trace" << endl;
 		fd_set readfds;
@@ -112,15 +112,15 @@ void record(const argparse::ArgumentParser& args) {
 			die("select");
 
 		kill(context.Pid, SIGINT);
-        auto res = libitrace::Subprocess::Wait(context, true);
-        if (!res || res->Exit != 0) {
-            cerr << "Error waiting for attached process" << endl;
-            if (res) cerr << res->Stderr << endl;
-            exit(1);
-        }
+		auto res = libitrace::Subprocess::Wait(context, true);
+		if (!res || res->Exit != 0) {
+			cerr << "Error waiting for attached process" << endl;
+			if (res) cerr << res->Stderr << endl;
+			exit(1);
+		}
 
-    } else if (!target.empty()) {
-        // run as child
+	} else if (!target.empty()) {
+		// run as child
 		instance.Run();
 
 	} else {

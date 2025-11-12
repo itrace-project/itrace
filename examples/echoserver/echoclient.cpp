@@ -23,6 +23,7 @@ int main(int argc, char **argv) {
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd == -1) {
 		perror("error making socket");
+		:q
 		exit(1);
 	}
 
@@ -50,8 +51,10 @@ int main(int argc, char **argv) {
 
 	srand(time(NULL));
 	while (1) {
-		int r = (rand() % 10) + 1;
-		sleep(r);
+		struct timespec ts;
+		ts.tv_sec  = 0;
+		ts.tv_nsec = 1000000;  // 1ms
+		nanosleep(&ts, NULL);
 
 		ssize_t sent = 0;
 		do {

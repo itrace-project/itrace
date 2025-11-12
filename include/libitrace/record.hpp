@@ -13,14 +13,16 @@ namespace libitrace {
 
 struct RecordArgs {
 	std::string prefix {"record"};
-	std::string ptargs {"intel_pt//u"};
+	std::string ptargs {
+	    "intel_pt/cyc,noretcomp/u"
+	};  // TODO: only user mode now but add option to change it
 	std::string outfile {};
 	std::string program {};
 	arglist programargs {};
 	std::optional<pid_t> pid {std::nullopt};
 	std::optional<std::string> symbol;
 	std::optional<std::string> instrptr_range {};
-    bool snapshot {false};
+	bool snapshot {false};
 	bool filter {false};
 };
 
@@ -79,6 +81,12 @@ public:
 	 * @brief Record a trace using snapshotting instead of an exhaustive trace
 	 * */
 	void SetSnapshotMode();
+
+	/*
+	 * @brief Snapshot a trace for an instance started with snapshot mode
+	 * @param RunningProcess context returned by Attach
+	 * */
+	void TakeSnapshot(const RunningProcess& context);
 
 private:
 	RecordArgs perfargs_ {};

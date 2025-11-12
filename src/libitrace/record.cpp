@@ -1,5 +1,6 @@
 #include "libitrace/record.hpp"
 
+#include <signal.h>
 #include <sys/wait.h>
 
 #include <sstream>
@@ -16,11 +17,11 @@ void Record::Run() {
 	}
 
 	auto args = build_arglist_();
-	for (auto arg : args) std::cout << arg << " ";
-	std::cout << std::endl;
-	libitrace::Subprocess perfrecord {"perf", args};
+    print_perf_args(args);
+
+	Subprocess perfrecord {"perf", args};
 	auto res {perfrecord.Run()};
-    if (!res) throw std::runtime_error("Error starting perf record instance");
+	if (!res) throw std::runtime_error("Error starting perf record instance");
 	if (res->Exit != 0) throw std::runtime_error(res->Stderr);
 }
 
@@ -28,18 +29,17 @@ RunningProcess Record::Attach(pid_t pid) {
 	perfargs_.pid = pid;
 
 	auto args = build_arglist_();
-	for (auto arg : args) std::cout << arg << " ";
-	std::cout << std::endl;
-	libitrace::Subprocess perfrecord {"perf", args};
+    print_perf_args(args);
+	Subprocess perfrecord {"perf", args};
 
 	auto res {perfrecord.Popen()};
-    if (!res) throw std::runtime_error("Error starting perf record instance");
+	if (!res) throw std::runtime_error("Error starting perf record instance");
 
 	return *res;
 }
 
 arglist Record::build_arglist_() {
-	libitrace::arglist args {perfargs_.prefix};
+	arglist args {perfargs_.prefix};
 	args.insert(args.end(), {"-e", perfargs_.ptargs});
 	args.insert(args.end(), {"-o", perfargs_.outfile});
 
@@ -56,7 +56,7 @@ arglist Record::build_arglist_() {
 		args.insert(args.end(), {"--filter", filter});
 	}
 
-    if (perfargs_.snapshot) args.insert(args.end(), {"--snapshot"});
+	if (perfargs_.snapshot) args.insert(args.end(), {"--snapshot"});
 
 	if (perfargs_.pid) {
 		args.insert(args.end(), {"-p", std::to_string(*perfargs_.pid)});
@@ -89,8 +89,15 @@ void Record::AddInstrPtrFilter(long start, long end) {
 	perfargs_.filter         = true;
 }
 
-void Record::SetSnapshotMode() {
-    perfargs_.snapshot = true;
+void Record::SetSnapshotMode() { perfargs_.snapshot = true; }
+
+void Record::TakeSnapshot(const RunningProcess& context) {
+	if (!perfargs_.snapshot)
+		throw std::runtime_error(
+		    "Start record with snapshot mode to take snapshot"
+		);
+
+	kill(context.Pid, SIGUSR2);
 }
 
 }  // namespace libitrace

@@ -27,7 +27,7 @@ target_include_directories(libitrace
 )
 target_link_libraries(libitrace PUBLIC argparse::argparse)
 
-file(GLOB ITRACE_SOURCES itrace/*.cpp)
+file(GLOB ITRACE_SOURCES itrace-cli/*.cpp)
 message(STATUS "itrace sources: ${ITRACE_SOURCES}")
 
 add_executable(itrace ${ITRACE_SOURCES})

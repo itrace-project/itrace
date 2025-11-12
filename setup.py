@@ -6,12 +6,18 @@ import shutil
 import sys
 import subprocess
 
-def build_itrace():
-    subprocess.run(["cmake", ".."], cwd="build", check=True)
-    subprocess.run(["make"], cwd="build", check=True)
-    subprocess.run(["./itrace", "--help"], cwd="build")
 
-def install_xed(custom_env):
+def check_intel_pt() -> bool:
+    result = subprocess.run(
+        "perf list | grep intel_pt", shell=True, capture_output=True, text=True
+    )
+    if result.returncode == 0:
+        if result.stdout != "":
+            return True
+    return False
+
+
+def build_xed():
     git_clone = ["git", "clone"]
 
     if not os.path.exists("bin/xed"):
@@ -29,16 +35,22 @@ def install_xed(custom_env):
 
         shutil.copy2("deps/xed/obj/wkit/bin/xed", "bin/xed")
 
-    subprocess.run(["xed", "-version"], env=custom_env, check=True)
+    subprocess.run(["xed", "-version"], check=True)
 
-def check_intel_pt() -> bool:
-    result = subprocess.run(
-        "perf list | grep intel_pt", shell=True, capture_output=True, text=True
+def build_perf2perfetto():
+    subprocess.run(
+        ["git", "clone", "https://github.com/michoecho/perf2perfetto.git", "deps/perf2perfetto"],
+        check=True
     )
-    if result.returncode == 0:
-        if result.stdout != "":
-            return True
-    return False
+    subprocess.run(
+        ["cargo", "build", "--release"],
+        cwd="deps/perf2perfetto"
+    )
+
+def build_itrace():
+    subprocess.run(["cmake", ".."], cwd="build", check=True)
+    subprocess.run(["make"], cwd="build", check=True)
+    subprocess.run(["./itrace", "--help"], cwd="build")
 
 
 if __name__ == "__main__":
@@ -59,6 +71,12 @@ if __name__ == "__main__":
         action="store_true",
         default=False,
     )
+    parser.add_argument(
+        "--export",
+        help="Build dependency needed for exporting trace to Perfetto. Need Rust and cargo",
+        action="store_true",
+        default=False,
+    )
 
     args = parser.parse_args()
 
@@ -67,16 +85,14 @@ if __name__ == "__main__":
         shutil.rmtree("bin")
         shutil.rmtree("build")
 
-    custom_env = os.environ.copy()
-    custom_env["PATH"] = os.path.abspath("bin") + os.pathsep + custom_env["PATH"]
-
     subprocess.run(["mkdir", "-p", "deps"])
     subprocess.run(["mkdir", "-p", "bin"])
     subprocess.run(["mkdir", "-p", "build"])
 
     # Install and build Intel x86 Encoder/Decoder (Intel xed)
-    install_xed(custom_env)
-
+    build_xed()
     build_itrace()
+    if args.export:
+        build_perf2perfetto()
 
     print("Setup complete!")

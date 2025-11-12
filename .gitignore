@@ -17,3 +17,5 @@ build/*
 
 build_local
 build_local/*
+
+*.ftf
