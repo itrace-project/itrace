@@ -58,8 +58,7 @@ int main(int argc, char **argv) {
 
 		ssize_t sent = 0;
 		do {
-			ssize_t ret =
-			    send(sockfd, message.data() + sent, message.size() - sent, 0);
+			ssize_t ret = send(sockfd, message.data() + sent, message.size() - sent, 0);
 			if (ret == -1) {
 				perror("send");
 				continue;

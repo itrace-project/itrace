@@ -28,8 +28,7 @@ extern "C" std::string get_client_message(int sockfd) {
 	ssize_t rcvd;
 
 	if ((rcvd = recvfrom(
-	         sockfd, buf, sizeof(buf), 0, (struct sockaddr*)&peer_addr,
-	         &peer_addr_size
+	         sockfd, buf, sizeof(buf), 0, (struct sockaddr*)&peer_addr, &peer_addr_size
 	     )) == -1) {
 		perror("recvfrom");
 		close(sockfd);
@@ -39,15 +38,12 @@ extern "C" std::string get_client_message(int sockfd) {
 	return std::string(buf, rcvd);
 }
 
-extern "C" void echo(
-    std::string message, const std::vector<std::pair<int, std::string>>& clients
-) {
+extern "C" void echo(std::string message, const std::vector<std::pair<int, std::string>>& clients) {
 	for (const auto& client : clients) {
 		int sockfd   = client.first;
 		ssize_t sent = 0;
 		do {
-			ssize_t ret =
-			    send(sockfd, message.data() + sent, message.size() - sent, 0);
+			ssize_t ret = send(sockfd, message.data() + sent, message.size() - sent, 0);
 			if (ret == -1) {
 				perror("send");
 				return;
@@ -76,8 +72,7 @@ int main() {
 	}
 
 	int yes = 1;
-	if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) ==
-	        -1 ||
+	if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1 ||
 	    setsockopt(listenfd, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes))) {
 		perror("setsockopt");
 		exit(1);
@@ -120,20 +115,12 @@ int main() {
 			char addr_str[INET6_ADDRSTRLEN];
 			if (addr.ss_family == AF_INET) {
 				struct sockaddr_in* in_addr = (struct sockaddr_in*)&addr;
-				inet_ntop(
-				    in_addr->sin_family, &in_addr, addr_str, sizeof(addr_str)
-				);
-				printf(
-				    "new connection from IPv4 %s on fd %d\n", addr_str, connfd
-				);
+				inet_ntop(in_addr->sin_family, &in_addr, addr_str, sizeof(addr_str));
+				printf("new connection from IPv4 %s on fd %d\n", addr_str, connfd);
 			} else {
 				struct sockaddr_in6* in6_addr = (struct sockaddr_in6*)&addr;
-				inet_ntop(
-				    in6_addr->sin6_family, &in6_addr, addr_str, sizeof(addr_str)
-				);
-				printf(
-				    "new connection from IPv6 %s on fd %d\n", addr_str, connfd
-				);
+				inet_ntop(in6_addr->sin6_family, &in6_addr, addr_str, sizeof(addr_str));
+				printf("new connection from IPv6 %s on fd %d\n", addr_str, connfd);
 			}
 			clients.push_back({connfd, addr_str});
 		}

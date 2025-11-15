@@ -17,7 +17,7 @@ void Record::Run() {
 	}
 
 	auto args = build_arglist_();
-    print_perf_args(args);
+	print_perf_args(args);
 
 	Subprocess perfrecord {"perf", args};
 	auto res {perfrecord.Run()};
@@ -29,46 +29,13 @@ RunningProcess Record::Attach(pid_t pid) {
 	perfargs_.pid = pid;
 
 	auto args = build_arglist_();
-    print_perf_args(args);
+	print_perf_args(args);
 	Subprocess perfrecord {"perf", args};
 
 	auto res {perfrecord.Popen()};
 	if (!res) throw std::runtime_error("Error starting perf record instance");
 
 	return *res;
-}
-
-arglist Record::build_arglist_() {
-	arglist args {perfargs_.prefix};
-	args.insert(args.end(), {"-e", perfargs_.ptargs});
-	args.insert(args.end(), {"-o", perfargs_.outfile});
-
-	if (perfargs_.filter) {
-		std::string filter {};
-		if (perfargs_.symbol)
-			filter +=
-			    "filter " + *perfargs_.symbol + " @ " + perfargs_.program + " ";
-
-		if (perfargs_.instrptr_range)
-			filter += "filter " + *perfargs_.instrptr_range + " @ " +
-			          perfargs_.program;
-
-		args.insert(args.end(), {"--filter", filter});
-	}
-
-	if (perfargs_.snapshot) args.insert(args.end(), {"--snapshot"});
-
-	if (perfargs_.pid) {
-		args.insert(args.end(), {"-p", std::to_string(*perfargs_.pid)});
-	} else {
-		args.insert(args.end(), {"--", perfargs_.program});
-		args.insert(
-		    args.end(), perfargs_.programargs.begin(),
-		    perfargs_.programargs.end()
-		);
-	}
-
-	return args;
 }
 
 void Record::AddSymbolFilter(std::string symbol) {
@@ -78,9 +45,7 @@ void Record::AddSymbolFilter(std::string symbol) {
 
 void Record::AddInstrPtrFilter(long start, long end) {
 	if (end <= start)
-		throw std::runtime_error(
-		    "Provide a valid instruction range <start>,<end> in hex"
-		);
+		throw std::runtime_error("Provide a valid instruction range <start>,<end> in hex");
 
 	long size = end - start;
 	std::stringstream ss {};
@@ -93,11 +58,37 @@ void Record::SetSnapshotMode() { perfargs_.snapshot = true; }
 
 void Record::TakeSnapshot(const RunningProcess& context) {
 	if (!perfargs_.snapshot)
-		throw std::runtime_error(
-		    "Start record with snapshot mode to take snapshot"
-		);
+		throw std::runtime_error("Start record with snapshot mode to take snapshot");
 
 	kill(context.Pid, SIGUSR2);
+}
+
+arglist Record::build_arglist_() {
+	arglist args {perfargs_.prefix};
+	args.insert(args.end(), {"-e", perfargs_.ptargs});
+	args.insert(args.end(), {"-o", perfargs_.outfile});
+
+	if (perfargs_.filter) {
+		std::string filter {};
+		if (perfargs_.symbol)
+			filter += "filter " + *perfargs_.symbol + " @ " + perfargs_.program + " ";
+
+		if (perfargs_.instrptr_range)
+			filter += "filter " + *perfargs_.instrptr_range + " @ " + perfargs_.program;
+
+		args.insert(args.end(), {"--filter", filter});
+	}
+
+	if (perfargs_.snapshot) args.insert(args.end(), {"--snapshot"});
+
+	if (perfargs_.pid) {
+		args.insert(args.end(), {"-p", std::to_string(*perfargs_.pid)});
+	} else {
+		args.insert(args.end(), {"--", perfargs_.program});
+		args.insert(args.end(), perfargs_.programargs.begin(), perfargs_.programargs.end());
+	}
+
+	return args;
 }
 
 }  // namespace libitrace

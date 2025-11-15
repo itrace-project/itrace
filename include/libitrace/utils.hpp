@@ -23,5 +23,6 @@ namespace libitrace {
 
 void print_perf_args(const libitrace::arglist& perfargs);
 std::string format_args(const libitrace::arglist& args);
+std::string timespec_to_string(const timespec& ts);
 
 }  // namespace libitrace

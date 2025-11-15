@@ -28,10 +28,8 @@ void exporter(const argparse::ArgumentParser& args) {
 		exit(1);
 	}
 
-	libitrace::arglist perfargs = {
-	    "script",    "-i",      infile,  "--itrace=bei0ns", "--dlfilter",
-	    filter_path, "--dlarg", outfile, "--dlarg",         "t"
-	};
+	libitrace::arglist perfargs = {"script",    "-i",      infile,  "--itrace=bei0ns", "--dlfilter",
+	                               filter_path, "--dlarg", outfile, "--dlarg",         "t"};
 	libitrace::print_perf_args(perfargs);
 
 	libitrace::Subprocess perfscript {"perf", perfargs};

@@ -11,11 +11,15 @@
 
 namespace libitrace {
 
+/*
+ * @struct RecordArgs
+ * @brief Arugments into the perf record subprocess that is spawned to trace
+ * */
 struct RecordArgs {
 	std::string prefix {"record"};
 	std::string ptargs {
-	    "intel_pt/cyc,noretcomp/u"
-	};  // TODO: only user mode now but add option to change it
+	    "intel_pt/cyc=1,noretcomp/u"
+	};  // TODO: only user mode now but add option to change it, maximum cyc granularity by default
 	std::string outfile {};
 	std::string program {};
 	arglist programargs {};
@@ -42,8 +46,8 @@ public:
 	 * @param path of the output file
 	 * */
 	Record(
-	    const std::string& targetprogram,
-	    const std::vector<std::string>& targetargs, const std::string& outfile
+	    const std::string& targetprogram, const std::vector<std::string>& targetargs,
+	    const std::string& outfile
 	) {
 		perfargs_.outfile     = outfile;
 		perfargs_.program     = targetprogram;

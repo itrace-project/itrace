@@ -65,8 +65,7 @@ void record(const argparse::ArgumentParser& args) {
 		std::string ipfilter = args.get<std::string>("filter-instr-ptr");
 		auto parsed          = parse_ipfilter(ipfilter);
 		if (!parsed) {
-			cerr << "Provide a valid instruction range <start>,<end> in hex"
-			     << endl;
+			cerr << "Provide a valid instruction range <start>,<end> in hex" << endl;
 			cerr << args << endl;
 			exit(1);
 		}
@@ -105,11 +104,10 @@ void record(const argparse::ArgumentParser& args) {
 		pid_t pid                         = args.get<int>("pid");
 		libitrace::RunningProcess context = instance.Attach(pid);
 
-		cout << "Press any key to stop trace" << endl;
+		cout << "Press [ENTER] to stop trace" << endl;
 		fd_set readfds;
 		FD_SET(STDIN_FILENO, &readfds);
-		if (select(STDIN_FILENO + 1, &readfds, NULL, NULL, NULL) == -1)
-			die("select");
+		if (select(STDIN_FILENO + 1, &readfds, NULL, NULL, NULL) == -1) die("select");
 
 		kill(context.Pid, SIGINT);
 		auto res = libitrace::Subprocess::Wait(context, true);

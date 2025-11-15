@@ -21,9 +21,8 @@ bool intelpt_available() {
 }
 
 void parseargs(
-    int argc, char** argv, argparse::ArgumentParser& program,
-    argparse::ArgumentParser& recordargs, argparse::ArgumentParser& decodeargs,
-    argparse::ArgumentParser& exportargs
+    int argc, char** argv, argparse::ArgumentParser& program, argparse::ArgumentParser& recordargs,
+    argparse::ArgumentParser& decodeargs, argparse::ArgumentParser& exportargs
 ) {
 	recordargs.add_description("Record the trace of a program");
 	recordargs.add_argument("target")
@@ -32,11 +31,8 @@ void parseargs(
 	recordargs.add_argument("-o", "--output")
 	    .help("Output file of trace")
 	    .default_value(std::string("itrace.data"));
-	recordargs.add_argument("-p", "--pid")
-	    .help("Process id to attach to")
-	    .scan<'i', int>();
-	recordargs.add_argument("-s", "--filter-symbol")
-	    .help("Symbol to filter trace data on");
+	recordargs.add_argument("-p", "--pid").help("Process id to attach to").scan<'i', int>();
+	recordargs.add_argument("-s", "--filter-symbol").help("Symbol to filter trace data on");
 	recordargs.add_argument("-a", "--filter-instr-ptr")
 	    .help(
 	        "Instruction pointer addresses to filter trace data on. Formatted "
@@ -53,6 +49,12 @@ void parseargs(
 	decodeargs.add_argument("-o", "--output")
 	    .help("Output file of trace")
 	    .default_value(std::string("itrace.trace"));
+	decodeargs.add_argument("-t", "--time")
+	    .help(
+	        "Only decode trace within <start>,<end> time window. Only <start> with decode until "
+	        "end, only <end> will decode from the start to the end. Format of the timestamps are "
+	        "in <seconds>.<nanoseconds> or the same way it is displayed in the decoded .trace file"
+	    );
 
 	exportargs.add_description(
 	    "Export a trace into .fzf (Fuchsia trace format) for viewing with "

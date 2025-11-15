@@ -79,9 +79,7 @@ std::optional<RunningProcess> Subprocess::Popen() {
 	// pipe read before wait because if pipe becomes full causes deadlock
 	close(stdout_pipe[1]);
 	close(stderr_pipe[1]);
-	return RunningProcess {
-	    cmd_, args_, child_pid, stdout_pipe[0], stderr_pipe[0]
-	};
+	return RunningProcess {cmd_, args_, child_pid, stdout_pipe[0], stderr_pipe[0]};
 }
 
 std::optional<CompletedProcess> Subprocess::Run() {
@@ -109,9 +107,7 @@ std::optional<CompletedProcess> Subprocess::Wait(
 	}
 
 	// TODO: Per wait man page, differentiate different exit conditions
-	return CompletedProcess {
-	    context.Cmd, context.Arglist, stdout, stderr, WEXITSTATUS(stat_loc)
-	};
+	return CompletedProcess {context.Cmd, context.Arglist, stdout, stderr, WEXITSTATUS(stat_loc)};
 }
 
 int Subprocess::SetStdout(int fd) {
