@@ -3,6 +3,18 @@
 `itrace` is a processor level runtime tracing tool built around the Intel
 Processor Trace technology. 
 
+Record a trace with `itrace record` and convert it to Fuchsia format with
+`itrace export`.
+![record](images/itrace_record_demo.gif)
+
+Export to [Perfetto](https://ui.perfetto.dev/) to view a flamegraph of the
+trace in your browser. Select your portion of interest and copy the time range.
+![record](images/itrace_perfetto_demo.gif)
+
+Decode the trace with `itrace decode`. Select a timerange of interest from the
+Perfetto flamegraph.
+![record](images/itrace_decode_demo.gif)
+
 ## Setup
 ```
 sudo apt install linux-tools-generic
