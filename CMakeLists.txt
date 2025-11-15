@@ -13,7 +13,14 @@ FetchContent_Declare(
     argparse
     GIT_REPOSITORY https://github.com/p-ranav/argparse.git
 )
-FetchContent_MakeAvailable(argparse)
+
+# FTXUI for main.cpp
+FetchContent_Declare(
+    ftxui
+    GIT_REPOSITORY https://github.com/ArthurSonzogni/FTXUI
+    GIT_TAG v6.1.9
+)
+FetchContent_MakeAvailable(argparse ftxui)
 
 file(GLOB LIB_SOURCES src/libitrace/*.cpp)
 message(STATUS "libitrace sources: ${LIB_SOURCES}")
@@ -36,4 +43,12 @@ target_link_libraries(itrace PUBLIC libitrace)
 # Optional: Add tests
 # enable_testing()
 # add_subdirectory(tests)
+
+add_executable(itrace_tui itrace-tui/main.cpp)
+target_link_libraries(itrace_tui
+    PRIVATE libitrace
+    PRIVATE ftxui::screen
+    PRIVATE ftxui::dom
+    PRIVATE ftxui::component
+)
 
