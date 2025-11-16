@@ -200,7 +200,7 @@ int main() {
                 layout = window(text("Info"), vbox({
                     paragraph(arg_descriptions[cmd][arg_selected]),
                     separator(),
-                    text("Press x to close")
+                    text("Press TAB to close")
                 })) | center;
             }
 
