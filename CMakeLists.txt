@@ -40,10 +40,6 @@ message(STATUS "itrace sources: ${ITRACE_SOURCES}")
 add_executable(itrace ${ITRACE_SOURCES})
 target_link_libraries(itrace PUBLIC libitrace)
 
-# Optional: Add tests
-# enable_testing()
-# add_subdirectory(tests)
-
 add_executable(itrace_tui itrace-tui/main.cpp)
 target_link_libraries(itrace_tui
     PRIVATE libitrace
