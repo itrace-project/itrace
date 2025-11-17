@@ -19,3 +19,5 @@ build_local
 build_local/*
 
 *.ftf
+
+*.DS_Store
