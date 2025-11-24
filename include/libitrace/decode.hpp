@@ -19,9 +19,9 @@ namespace libitrace {
  * trace
  * */
 struct ScriptArgs {
-	std::string prefix {"script"};                  // perf script
-	std::string synth_events {"--itrace=iybxwpe"};  // synthesize all events
-	std::string insn_trace {"--insn-trace"};        // instruction trace by default
+	std::string prefix {"script"};                 // perf script
+	std::string synth_events {"--itrace=ibxwpe"};  // synthesize all events
+	std::string insn_trace {"--insn-trace"};       // instruction trace by default
 	std::string infile {};
 	std::optional<struct timespec> start_time {std::nullopt};
 	std::optional<struct timespec> end_time {std::nullopt};

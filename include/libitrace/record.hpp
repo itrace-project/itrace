@@ -52,6 +52,12 @@ public:
 		perfargs_.outfile     = outfile;
 		perfargs_.program     = targetprogram;
 		perfargs_.programargs = targetargs;
+
+		if (check_cyc_avail()) {
+			perfargs_.ptargs = "intel_pt/cyc=1,noretcomp=1/u";
+		} else {
+			perfargs_.ptargs = "intel_pt/noretcomp=1/u";
+		}
 	}
 
 	/*
@@ -96,6 +102,7 @@ private:
 	RecordArgs perfargs_ {};
 
 	libitrace::arglist build_arglist_();
+	bool check_cyc_avail();
 };
 
 }  // namespace libitrace

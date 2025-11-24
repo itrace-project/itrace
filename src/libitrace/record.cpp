@@ -1,5 +1,6 @@
 #include "libitrace/record.hpp"
 
+#include <fcntl.h>
 #include <signal.h>
 #include <sys/wait.h>
 
@@ -89,6 +90,20 @@ arglist Record::build_arglist_() {
 	}
 
 	return args;
+}
+
+bool Record::check_cyc_avail() {
+	int fd = open("/sys/bus/event_source/devices/intel_pt/caps/psb_cyc", O_RDONLY);
+	if (fd == -1) throw std::runtime_error("Error opening file that indiates cyc support");
+
+	char val {};
+	if (read(fd, &val, sizeof(char)) == -1)
+		throw std::runtime_error("Error checking cyc availability");
+	close(fd);
+
+	if (val == '1') return true;
+
+	return false;
 }
 
 }  // namespace libitrace

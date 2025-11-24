@@ -1,5 +1,7 @@
 #include "export.hpp"
 
+#include <unistd.h>
+
 #include <cstdlib>
 
 #include "libitrace/subprocess.hpp"
@@ -8,15 +10,12 @@
 using std::cerr, std::endl;
 
 void exporter(const argparse::ArgumentParser& args) {
-	const char* FILTER_PATH = std::getenv("DLFILTER_PATH");
-	if (!FILTER_PATH) {
-		cerr << "DLFILTER_PATH not set. Run ./setup.py --export and set "
-		        "DLFILTER_PATH env var"
+	if (access(FILTER_PATH, F_OK) != 0) {
+		cerr << "libperf2perfetto.so not found in /usr/local/lib. Run ./setup.py --export --install"
 		     << endl;
 		exit(1);
 	}
 
-	std::string filter_path(FILTER_PATH);
 	std::string infile {};
 	std::string outfile {};
 	try {
@@ -28,8 +27,11 @@ void exporter(const argparse::ArgumentParser& args) {
 		exit(1);
 	}
 
-	libitrace::arglist perfargs = {"script",    "-i",      infile,  "--itrace=bei0ns", "--dlfilter",
-	                               filter_path, "--dlarg", outfile, "--dlarg",         "t"};
+	libitrace::arglist perfargs = {"script",     "-i",
+	                               infile,       "--itrace=bei0ns",
+	                               "--dlfilter", std::string(FILTER_PATH),
+	                               "--dlarg",    outfile,
+	                               "--dlarg",    "t"};
 	libitrace::print_perf_args(perfargs);
 
 	libitrace::Subprocess perfscript {"perf", perfargs};

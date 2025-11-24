@@ -17,11 +17,12 @@ Perfetto flamegraph.
 
 ## Setup
 ```
+sudo apt update
 sudo apt install linux-tools-generic
 sudo apt install cmake
 echo -1 | sudo tee /proc/sys/kernel/perf_event_paranoid
 ./setup.py
-sudo install bin/xed /usr/bin/xed
+sudo ./setup.py --install
 ```
 
 Optionally, if you want to export and view the traces on
@@ -30,8 +31,9 @@ exporter requires Rust and Cargo which can be installed
 [here](https://rust-lang.org/tools/install/).
 
 ```
+sudo apt install llvm clang libclang-dev
 ./setup.py --export
-export DLFILTER_PATH=$(realpath deps/perf2perfetto/target/release/libperf2perfetto.so)
+sudo ./setup.py --install
 ```
 
 ## Acknowledgements
