@@ -33,6 +33,10 @@ void Decode::AddTimeRange(
 	args_.end_time   = end;
 }
 
+void Decode::AddSource() {
+    args_.src= true;
+}
+
 libitrace::arglist Decode::build_arglist_() {
 	arglist args {args_.prefix};
 	args.insert(args.end(), args_.synth_events);
@@ -49,7 +53,12 @@ libitrace::arglist Decode::build_arglist_() {
 		args.insert(args.end(), {"--time", timerange});
 	}
 
+    if (args_.src) {
+        args.insert(args.end(), {"-F," "+srcline,+srccode"});
+    }
+
 	return args;
 }
+
 
 }  // namespace libitrace

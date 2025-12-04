@@ -55,6 +55,9 @@ void parseargs(
 	        "end, only <end> will decode from the start to the end. Format of the timestamps are "
 	        "in <seconds>.<nanoseconds> or the same way it is displayed in the decoded .trace file"
 	    );
+	decodeargs.add_argument("-s", "--src")
+	    .help("Interleave source code and source line in decode.")
+	    .implicit_value(true);
 
 	exportargs.add_description(
 	    "Export a trace into .fzf (Fuchsia trace format) for viewing with "

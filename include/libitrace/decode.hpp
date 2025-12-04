@@ -25,6 +25,7 @@ struct ScriptArgs {
 	std::string infile {};
 	std::optional<struct timespec> start_time {std::nullopt};
 	std::optional<struct timespec> end_time {std::nullopt};
+    bool src {};
 	bool xed {};
 };
 
@@ -62,6 +63,12 @@ public:
 	    std::optional<struct timespec> start = std::nullopt,
 	    std::optional<struct timespec> end   = std::nullopt
 	);
+
+	/*
+	 * @brief Add the source code and source line interleaved in the trace. Only works if compiled
+	 * with the debug flag.
+	 * */
+	void AddSource();
 
 private:
 	ScriptArgs args_ {};

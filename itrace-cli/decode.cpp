@@ -89,5 +89,7 @@ void decode(const argparse::ArgumentParser& args) {
 		instance.AddTimeRange(start, end);
 	}
 
+    if (args.is_used("src")) instance.AddSource();
+
 	instance.Run();
 }
