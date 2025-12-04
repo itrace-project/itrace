@@ -54,7 +54,7 @@ libitrace::arglist Decode::build_arglist_() {
 	}
 
     if (args_.src) {
-        args.insert(args.end(), {"-F," "+srcline,+srccode"});
+        args.insert(args.end(), {"-F," "+srccode,+time"});
     }
 
 	return args;

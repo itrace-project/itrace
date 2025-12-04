@@ -54,7 +54,7 @@ public:
 		perfargs_.programargs = targetargs;
 
 		if (check_cyc_avail()) {
-			perfargs_.ptargs = "intel_pt/cyc=1,noretcomp=1/u";
+			perfargs_.ptargs = "intel_pt/cyc,cyc_thresh=1,noretcomp=1/u";
 		} else {
 			perfargs_.ptargs = "intel_pt/noretcomp=1/u";
 		}
