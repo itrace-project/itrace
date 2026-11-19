@@ -47,10 +47,20 @@ def build_perf2perfetto():
         )
 
     if not os.path.exists("bin/libperf2perfetto.so"):
-        subprocess.run(
-            ["cargo", "build", "--release"],
-            cwd="deps/perf2perfetto"
-        )
+        try:
+            subprocess.run(
+                ["cargo", "build", "--release"], cwd="deps/perf2perfetto", check=True
+            )
+        except FileNotFoundError:
+            sys.exit(
+                "Could not start the Perfetto export build: cargo was not found. "
+                "Install Rust and make sure cargo is on PATH, or rerun setup without --export."
+            )
+        except subprocess.CalledProcessError as error:
+            sys.exit(
+                f"Could not build perf2perfetto: cargo exited with status {error.returncode}. "
+                "See the build output above for details."
+            )
         shutil.copy2("deps/perf2perfetto/target/release/libperf2perfetto.so", "bin/libperf2perfetto.so")
 
 def build_itrace():
