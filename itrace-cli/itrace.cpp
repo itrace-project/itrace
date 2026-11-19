@@ -27,7 +27,7 @@ void parseargs(
 	recordargs.add_description("Record the trace of a program");
 	recordargs.add_argument("target")
 	    .help("Target program and its arguments")
-	    .nargs(argparse::nargs_pattern::any);
+	    .remaining();
 	recordargs.add_argument("-o", "--output")
 	    .help("Output file of trace")
 	    .default_value(std::string("itrace.data"));
